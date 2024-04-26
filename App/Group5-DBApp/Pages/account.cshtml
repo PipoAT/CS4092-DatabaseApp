@@ -1,0 +1,253 @@
+@page
+@using Group5_DBApp.Models
+@using Microsoft.AspNetCore.Http
+@using Group5_DBApp.Pages
+@model Group5_DBApp.Pages.AccountModel
+@{
+    ViewData["Title"] = "Account Info";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Shopping Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Our Online Store</h1>
+    </header>
+
+    <main>
+        <br>
+        <h2>Hello, @Model.Users.FirstOrDefault()?.username</h2>
+        <br>
+        <button id="addNewCreditCard">Add New Credit Card</button>
+        <button id="addNewAddress">Add New Address</button>
+        <br>
+        <div id="addCreditCardForm" style="display: none;">
+            <form method="post" asp-page-handler="AddCreditCard">
+                <label for="newCardNumber">Credit Card Number:</label>
+                <input type="text" id="newCardNumber" name="newCardNumber" placeholder="1234567891234567"/>
+                <br>
+                <label for="newExpireDate">Expiration Date:</label>
+                <input type="text" id="newExpireDate" name="newExpireDate" placeholder="1-1-1900"/>
+                <br>
+                <button type="submit">Add Credit Card</button>
+            </form>
+        </div>
+        <div id="addAddressForm" class="modal">
+            <form method="post" asp-page-handler="AddAddress">
+                <input type="hidden" id="AddAddressId" name="AddAddressId" value="1"/>
+                <label for="homeAddress">Home Address:</label>
+                <input type="text" id="homeAddress" name="homeAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <label for="deliveryAddress">Delivery Address:</label>
+                <input type="text" id="deliveryAddress" name="deliveryAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <label for="paymentAddress">Payment Address:</label>
+                <input type="text" id="paymentAddress" name="paymentAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <button type="submit">Add Address(es)</button>
+            </form>
+        </div>
+        <br>
+        <br>
+        <h3>Credit Card Information:</h3>
+        <p>@foreach (var creditCards in Model.CreditCards)
+            {
+                <div class="credit-card">
+                <p>Card Number: @creditCards.CardNumber</p>
+                <p>Expiration Date: @creditCards.ExpireDate</p>
+                <button class="update-credit-card-btn" data-card-id="@creditCards.CardId">Update Credit Card</button>
+                <button class="delete-credit-card-btn" data-card-id="@Model.CreditCards.FirstOrDefault()?.CardId">Delete Credit Card</button>
+                <br>
+                <br>
+                </div>
+            }
+        </p>
+        <h3>Address Information:</h3>
+        @if (Model.Users != null && Model.Users.Any())
+        {
+            <div class="user">
+                <p>Home Address: @Model.Users.FirstOrDefault()?.home_address</p>
+                <p>Delivery Address: @Model.Users.FirstOrDefault()?.delivery_address</p>
+                <p>Payment Address: @Model.Users.FirstOrDefault()?.payment_address</p>
+                <button class="update-address-btn" data-user-id="@Model.Users.FirstOrDefault()?.user_id">Update Address(es)</button>
+                <br>
+                <br>
+                <button class="delete-address-btn" data-user-id="@Model.Users.FirstOrDefault()?.user_id">Delete Address(es)</button>
+                <br>
+            </div>
+        }
+        <br>
+        <br>
+        <h3>Current Balance:</h3>
+        @{
+            string totalCostStr = HttpContext.Session.GetString("TotalCost");
+            decimal totalCost = decimal.Parse(totalCostStr);
+        }
+        <p>Total Cost of Cart: $@totalCost</p>
+
+    </main>
+    <div id="deleteCreditCardModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="deleteCreditCardForm" method="post" asp-page-handler="DeleteCreditCard">
+                <input type="hidden" id="CreditCardId" name="CreditCardId" value=" "/>
+                <button type="submit">Delete Credit Card</button>
+            </form>
+        </div>
+    </div>
+    <div id="updateCreditCardModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="updateCreditCardForm" method="post" asp-page-handler="UpdateCreditCard">
+                <input type="hidden" id="cardIdInput" name="CreditCardId" />
+                <label for="updatedCardNumber">Card Number:</label>
+                <input type="text" id="updatedCardNumber" name="CardNumber" placeholder="Ex: 0000000000000000"/>
+                <br>
+                <label for="updatedExpireDate">Expiration Date:</label>
+                <input type="text" id="updatedExpireDate" name="ExpireDate" placeholder="Ex: 2000-12-31"/>
+                <br>
+                <button type="submit">Update Credit Card</button>
+            </form>
+        </div>
+    </div>
+    <div id="updateAddressModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="updateAddressForm" method="post" asp-page-handler="updateAddress">
+                <input type="hidden" id="userId" name="userId" />
+                <label for="homeAddress">Home Address:</label>
+                <input type="text" id="homeAddress" name="homeAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <label for="deliveryAddress">Delivery Address:</label>
+                <input type="text" id="deliveryAddress" name="deliveryAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <label for="paymentAddress">Payment Address:</label>
+                <input type="text" id="paymentAddress" name="paymentAddress" placeholder="Ex: 123 street, city, country"/>
+                <br>
+                <button type="submit">Update Address(es)</button>
+            </form>
+        </div>
+    </div>
+    <div id="deleteAddressModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="deleteAddressForm" method="post" asp-page-handler="DeleteAddress">
+                <input type="hidden" id="userId" name="userId" value=@Model.Users.FirstOrDefault()?.user_id />
+                <input type="hidden" id="homeAddress" name="homeAddress" value="No Address"/>
+                <input type="hidden" id="deliveryAddress" name="deliveryAddress" value="No Address"/>
+                <input type="hidden" id="paymentAddress" name="paymentAddress" value="No Address"/>
+                <button type="submit">Delete Address(es)</button>
+            </form>
+        </div>
+    </div>
+</body>
+<script>
+    // Get the modals
+    var updateCreditCardModal = document.getElementById("updateCreditCardModal");
+    var updateAddressModal = document.getElementById("updateAddressModal");
+
+    var deleteCreditCardModal = document.getElementById("deleteCreditCardModal");
+    var deleteAddressModal = document.getElementById("deleteAddressModal");
+    
+    // Get the buttons
+    var updateCreditCardButtons = document.getElementsByClassName("update-credit-card-btn");
+    var updateAddressButtons = document.getElementsByClassName("update-address-btn");
+
+    var deleteCreditCardButtons = document.getElementsByClassName("delete-credit-card-btn");
+    var deleteAddressButtons = document.getElementsByClassName("delete-address-btn");
+
+    // Get the close buttons
+    var closeButtons = document.getElementsByClassName("close");
+
+    // Function to open the update credit card modal
+    function openUpdateCreditCardModal(cardId) {
+        document.getElementById("cardIdInput").value = cardId;
+        updateCreditCardModal.style.display = "block";
+    }
+
+    // Function to open the delete credit card modal
+    function openDeleteCreditCardModal(cardId) {
+        document.getElementById("CreditCardId").value = cardId;
+        deleteCreditCardModal.style.display = "block";
+    }
+
+    // Function to open the update address modal
+    function openUpdateAddressModal(userId) {
+        document.getElementById("userId").value = userId;
+        updateAddressModal.style.display = "block";
+    }
+
+    // Function to open the delete address modal
+    function openDeleteAddressModal(userId) {
+        document.getElementById("userId").value = userId;
+        deleteAddressModal.style.display = "block";
+    }
+
+    // Add click event listener to each "Update Credit Card" button
+    for (var i = 0; i < updateCreditCardButtons.length; i++) {
+        updateCreditCardButtons[i].onclick = function() {
+            var cardId = this.getAttribute("data-card-id");
+            console.log(updateCreditCardButtons.length);
+            openUpdateCreditCardModal(cardId);
+        };
+    }
+
+    for (var i = 0; i < deleteAddressButtons.length; i++) {
+        deleteAddressButtons[i].onclick = function() {
+            var userId = this.getAttribute("data-user-id");
+            console.log( deleteAddressButtons.length);
+            openDeleteAddressModal(userId);
+        };
+    }
+
+    // Add click event listener to each "Delete Credit Card" button
+    for (var i = 0; i < deleteCreditCardButtons.length; i++) {
+        deleteCreditCardButtons[i].onclick = function() {
+            var cardId = this.getAttribute("data-card-id");
+            console.log(deleteCreditCardButtons.length);
+            openDeleteCreditCardModal(cardId);
+        };
+    }
+
+    // Add click event listener to each "Update Address" button
+    for (var i = 0; i < updateAddressButtons.length; i++) {
+        updateAddressButtons[i].onclick = function() {
+            var userId = this.getAttribute("data-user-id");
+            openUpdateAddressModal(userId);
+        };
+    }
+
+    // Add click event listener to each close button
+    for (var i = 0; i < closeButtons.length; i++) {
+        closeButtons[i].onclick = function() {
+            updateCreditCardModal.style.display = "none";
+            updateAddressModal.style.display = "none";
+        };
+    }
+
+    // Close the modal when the user clicks anywhere outside of it
+    window.onclick = function(event) {
+        if (event.target == updateCreditCardModal) {
+            updateCreditCardModal.style.display = "none";
+        } else if (event.target == updateAddressModal) {
+            updateAddressModal.style.display = "none";
+        }
+    }
+
+    document.getElementById('addNewAddress').addEventListener('click', function() {
+        // Show the add product form
+        document.getElementById('addAddressForm').style.display = 'block';
+    });
+
+    document.getElementById('addNewCreditCard').addEventListener('click', function() {
+        // Show the add product form
+        document.getElementById('addCreditCardForm').style.display = 'block';
+    });
+</script>
+</html>
